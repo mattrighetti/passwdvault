@@ -15,8 +15,10 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "passwdvault [COMMAND]",
 		Short: "PasswdVault is a powerfult and secure CLI password manager",
-		Long: `A password manager built with security in mind without sacrificing ease of use.
-Complete documentation is available at http://hugo.spf13.com`,
+		Long: `		
+		PASSWDVAULT
+
+A password manager built with security in mind without sacrificing ease of use.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("This is the root command")
 		},
