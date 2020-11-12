@@ -24,7 +24,7 @@ Complete documentation is available at http://hugo.spf13.com`,
 )
 
 // Execute executes the root command.
-func Execute() error {
+func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
