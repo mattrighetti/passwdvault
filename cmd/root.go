@@ -30,3 +30,11 @@ func Execute() {
 		os.Exit(1)
 	}
 }
+
+func init() {
+	cobra.OnInitialize(initConfig)
+}
+
+func initConfig() {
+	// init configuration here
+}
