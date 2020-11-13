@@ -12,7 +12,7 @@ var DB *badger.DB
 // DbInit executes a function that initiates and opens BadgerDB
 func DbInit() {
 	var err error
-	DB, err = badger.Open(badger.DefaultOptions("/tmp/badger").WithEncryptionKey([]byte("this-is-a-masterkey-with-more-16")))
+	DB, err = badger.Open(badger.DefaultOptions("/tmp/badger").WithLogger(nil).WithEncryptionKey([]byte("this-is-a-masterkey-with-more-16")))
 	if err != nil {
 		log.Fatal(err)
 	}
