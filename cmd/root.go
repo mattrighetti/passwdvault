@@ -8,10 +8,6 @@ import (
 )
 
 var (
-	// Used for flags.
-	cfgFile     string
-	userLicense string
-
 	rootCmd = &cobra.Command{
 		Use:   "passwdvault [COMMAND]",
 		Short: "PasswdVault is a powerfult and secure CLI password manager",
