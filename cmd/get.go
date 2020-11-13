@@ -13,10 +13,12 @@ var getCmd = &cobra.Command{
 	Long:  "examples here...",
 	Run: func(cmd *cobra.Command, args []string) {
 		if db.IsPresent(args[0]) {
-			err := db.Get(args[0])
+			passwd, err := db.Get(args[0])
 			if err != nil {
 				fmt.Printf("Could not get value with key %s\n", args[0])
 			}
+
+			fmt.Println(string(passwd))
 		} else {
 			fmt.Printf("No password stored with key %s\n", args[0])
 		}
