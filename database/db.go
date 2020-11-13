@@ -2,7 +2,9 @@ package database
 
 import (
 	"log"
+	"path"
 
+	"github.com/MattRighetti/passwdvault/configuration"
 	badger "github.com/dgraph-io/badger/v2"
 )
 
@@ -12,7 +14,19 @@ var DB *badger.DB
 // DbInit executes a function that initiates and opens BadgerDB
 func DbInit() {
 	var err error
-	DB, err = badger.Open(badger.DefaultOptions("/tmp/badger").WithLogger(nil).WithEncryptionKey([]byte("this-is-a-masterkey-with-more-16")))
+	databaseFilePath := path.Join(configuration.DefaultConfig.Database.Path, configuration.DefaultConfig.Database.Name)
+	if configuration.DefaultConfig.Database.Encrypted {
+		masterKey, err := configuration.ReadMasterKeyFromFile(configuration.DefaultConfig.Database.MasterKey.FromFilePath)
+		log.Printf("Read MasterKey: %s\n", masterKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		DB, err = badger.Open(badger.DefaultOptions(databaseFilePath).WithLogger(nil).WithEncryptionKey(masterKey))
+	} else {
+		DB, err = badger.Open(badger.DefaultOptions(databaseFilePath).WithLogger(nil))
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}

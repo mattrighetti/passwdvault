@@ -7,8 +7,13 @@ import (
 )
 
 func main() {
-	configuration.CheckInitFile()
+	err := configuration.CheckInitFile()
+	if err != nil {
+		panic("could not find or create configuration file")
+	}
+
 	db.DbInit()
 	defer db.CloseDb()
+
 	cmd.Execute()
 }
