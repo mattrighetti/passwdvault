@@ -33,6 +33,10 @@ var DefaultConfig = Configuration{
 		Name:      "badger",
 		Path:      "/tmp/",
 		Encrypted: true,
+		MasterKey: MasterKey{
+			FromFilePath: "/etc/passwdvault/mk",
+			Length:       32,
+		},
 	},
 }
 
@@ -73,4 +77,20 @@ func fileExists(filename string) bool {
 	}
 
 	return !info.IsDir()
+}
+
+// ReadMasterKeyFromFile reads masterkey value from file
+func ReadMasterKeyFromFile(filepath string) ([]byte, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	mkBytes := make([]byte, DefaultConfig.Database.MasterKey.Length)
+	byteRead, err := file.Read(mkBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return mkBytes[:byteRead], nil
 }
