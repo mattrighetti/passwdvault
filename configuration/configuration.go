@@ -75,10 +75,12 @@ func ParseConfigurationFile() error {
 
 // CreateConfigurationFile creates a configuration file in $HOME/.passwdvaultconfig.yaml with
 // values specified in user and database
-func CreateConfigurationFile(completeFilePath string, user *UserConfiguration, database *DatabaseConfiguration) error {
+func CreateConfigurationFile(user *UserConfiguration, database *DatabaseConfiguration) error {
 	viper.AddConfigPath(os.Getenv("HOME"))
 	viper.SetDefault("user", *user)
 	viper.SetDefault("database", *database)
+
+	completeFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
 	viper.WriteConfigAs(completeFilePath)
 
 	if !fileExists(completeFilePath) {
@@ -90,7 +92,7 @@ func CreateConfigurationFile(completeFilePath string, user *UserConfiguration, d
 
 // CreateDefaultFile creates a default configuration file in $HOME/.passwdvaultconfig.yaml
 func CreateDefaultFile(completeFilePath string) error {
-	return CreateConfigurationFile(completeFilePath, &DefaultConfig.User, &DefaultConfig.Database)
+	return CreateConfigurationFile(&DefaultConfig.User, &DefaultConfig.Database)
 }
 
 // ReadMasterKeyFromFile reads masterkey value from file
