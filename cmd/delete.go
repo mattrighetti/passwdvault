@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/MattRighetti/passwdvault/configuration"
 	db "github.com/MattRighetti/passwdvault/database"
 	"github.com/spf13/cobra"
 )
@@ -11,6 +12,14 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete [PASSWORD_ID]",
 	Short: "Deletes password",
 	Long:  "examples here...",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		err := configuration.CheckInitFile()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if db.IsPresent(args[0]) {
 			err := db.Delete(args[0])
