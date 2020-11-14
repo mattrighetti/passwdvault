@@ -8,14 +8,14 @@ import (
 )
 
 var (
-	len int16
+	length int16
 
 	generateCmd = &cobra.Command{
 		Use:   "generate",
 		Short: "Generates password",
 		Long:  "examples here...",
 		Run: func(cmd *cobra.Command, args []string) {
-			pass, err := generator.Generate(uint8(len))
+			pass, err := generator.Generate(uint8(length))
 			if err != nil {
 				fmt.Println("Length not supported.")
 			}
@@ -27,5 +27,5 @@ var (
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
-	generateCmd.Flags().Int16VarP(&len, "length", "l", 8, "Length of the password to generate")
+	generateCmd.Flags().Int16VarP(&length, "length", "l", 8, "Length of the password to generate")
 }

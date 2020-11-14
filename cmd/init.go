@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -28,36 +29,54 @@ var (
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var masterkey []byte
-			var encryptString string
-			var user configuration.UserConfiguration
-			var databaseConf configuration.DatabaseConfiguration
+			var config configuration.Configuration
 
-			readFromStdin(&user.Name, "What's your name? ")
-			readFromStdin(&user.Email, "What's your email address? ")
-			readFromStdin(&databaseConf.Name, "Insert name of the database folder: ")
-			readFromStdin(&databaseConf.Path, "Insert path where you would like to save the database folder: ")
-			readFromStdin(&encryptString, "Would you like to encrypt the database? [y/n]: ")
+			fmt.Print("Your name: ")
+			fmt.Scanf("%s", &config.User.Name)
 
-			if encryptString != "y" {
-				databaseConf.Encrypted = false
-			} else {
-				databaseConf.Encrypted = true
+			fmt.Print("Your email: ")
+			fmt.Scanf("%s", &config.User.Email)
+
+			dir, err := os.Getwd()
+			if err != nil {
+				log.Fatal(err)
 			}
+			log.Printf("saving folder in %s\n", dir)
 
-			if databaseConf.Encrypted {
-				readFromStdin(&databaseConf.MasterKey.FromFilePath, "Insert master key file path (leave empty if you don't want to store it locally): ")
+			config.Database.Path = dir
+			config.Database.Name = ".passwddatabase"
+
+			var res string
+			fmt.Print("Would you like to encrypt the database? [y/n]: ")
+			fmt.Scanf("%s", &res)
+			if res == "y" {
+				config.Database.Encrypted = true
+
+				var masterkey string
 				for {
-					masterkey, err = readMasterKeyWithDoubleCheck("Insert master key with which you would like to encrypt the database")
-					if err == nil {
+					fmt.Print("MasterKey (must be either 8 or 16 or 32 or 64 chars): ")
+					fmt.Scanf("%s", &masterkey)
+					log.Printf("Read %d bytes\n", len(masterkey))
+					if len(masterkey) == 8 || len(masterkey) == 16 || len(masterkey) == 32 || len(masterkey) == 64 {
 						break
 					}
-					fmt.Println(err)
 				}
-				// databaseConf.MasterKey.Length = len(masterkey)
-				fmt.Print(masterkey)
+				config.Database.MasterKey.Length = int8(len(masterkey))
+
+				fmt.Print("Would you like to store the masterkey somewhere in your system in order to avoid writing everytime? [y/n]: ")
+				fmt.Scanf("%s", &res)
+				if res == "y" {
+					fmt.Print("Insert path to file: ")
+					fmt.Scanf("%s", &config.Database.MasterKey.FromFilePath)
+				}
+				resetString(&res)
+
+			} else {
+				config.Database.Encrypted = false
 			}
+			resetString(&res)
+
+			configuration.CreateConfigurationFile(&config.User, &config.Database)
 		},
 	}
 )
@@ -108,4 +127,8 @@ func readMasterKeyWithDoubleCheck(displayText string) ([]byte, error) {
 	}
 
 	return mk, nil
+}
+
+func resetString(s *string) {
+	*s = ""
 }
