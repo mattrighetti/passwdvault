@@ -7,6 +7,7 @@ import (
 	"path"
 
 	db "github.com/MattRighetti/passwdvault/database"
+	"github.com/MattRighetti/passwdvault/utils"
 	badger "github.com/dgraph-io/badger/v2"
 	"github.com/spf13/viper"
 )
@@ -28,7 +29,8 @@ const (
 
 // DefaultConfig default configuration
 var (
-	configuraton *Configuration
+	configuraton   *Configuration
+	ConfigFilePath = path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
 
 	DefaultConfig = Configuration{
 		User: UserConfiguration{
@@ -46,19 +48,6 @@ var (
 		},
 	}
 )
-
-// CheckInitFile checks wether the default configuration file is present or not
-func CheckInitFile() error {
-	configFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
-	log.Println("checking for file in " + configFilePath)
-	if !fileExists(configFilePath) {
-		log.Println("file could not be found")
-		return fmt.Errorf("no .passwdvaultconfig file was found")
-	}
-	log.Println("file was found")
-
-	return nil
-}
 
 // ParseConfigurationFile parses the configuration file
 func ParseConfigurationFile() error {
@@ -83,7 +72,7 @@ func CreateConfigurationFile(user *UserConfiguration, database *DatabaseConfigur
 	completeFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
 	viper.WriteConfigAs(completeFilePath)
 
-	if !fileExists(completeFilePath) {
+	if !FileExists(completeFilePath) {
 		return fmt.Errorf("configuration file could not have been created")
 	}
 
@@ -101,6 +90,7 @@ func ReadMasterKeyFromFile(filepath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	mkBytes := make([]byte, viper.GetInt("database.masterkey.length"))
 	byteRead, err := file.Read(mkBytes)
@@ -113,37 +103,12 @@ func ReadMasterKeyFromFile(filepath string) ([]byte, error) {
 
 // DbInit executes a function that initiates and opens BadgerDB
 func DbInit() error {
-	var err error
-	databaseFilePath := path.Join(viper.GetString("database.path"), viper.GetString("database.name"))
-	log.Printf("loading database from %s\n", databaseFilePath)
-	if viper.GetBool("database.encrypted") {
-		log.Println("database is encrypted")
-		mkFilePath := viper.GetString("database.masterkey.fromfilepath")
-
-		var masterKey []byte
-		var masterKeyString string
-
-		if mkFilePath != "" {
-			log.Printf("reading masterkey from %s\n", mkFilePath)
-			masterKey, err = ReadMasterKeyFromFile(mkFilePath)
-		} else {
-			fmt.Print("MasterKey: ")
-			fmt.Scanf("%s", &masterKeyString)
-			log.Printf("read %s|\n", masterKeyString)
-		}
-
-		if err != nil {
-			return err
-		}
-
-		log.Printf("Read MasterKey: %s|\n", masterKey)
-
-		db.DB, err = badger.Open(badger.DefaultOptions(databaseFilePath).WithLogger(nil).WithEncryptionKey(masterKey))
-	} else {
-		log.Println("database unencrypted")
-		db.DB, err = badger.Open(badger.DefaultOptions(databaseFilePath).WithLogger(nil))
+	options, err := initOptions()
+	if err != nil {
+		return err
 	}
 
+	db.DB, err = badger.Open(options)
 	if err != nil {
 		return err
 	}
@@ -158,12 +123,17 @@ func CloseDb() {
 
 // InitCriticalData utility function that initiates every critical data needed to the program
 func InitCriticalData() error {
-	if err := CheckInitFile(); err != nil {
-		return err
+	if exists := FileExists(ConfigFilePath); exists != true {
+		return fmt.Errorf("configuration file is not present")
 	}
 
 	if err := ParseConfigurationFile(); err != nil {
 		return err
+	}
+
+	databaseFilePath := path.Join(os.Getenv("HOME"), viper.GetString("database.path"), viper.GetString("database.name"))
+	if exists := FileExists(databaseFilePath); exists != true {
+		return fmt.Errorf("database file is not present")
 	}
 
 	if err := DbInit(); err != nil {
@@ -173,10 +143,48 @@ func InitCriticalData() error {
 	return nil
 }
 
-// fileExists checks if a file exists and is not a directory before we
+func initOptions() (badger.Options, error) {
+	databaseFilePath := path.Join(viper.GetString("database.path"), viper.GetString("database.name"))
+	options := badger.DefaultOptions(databaseFilePath).WithLogger(nil)
+
+	if viper.GetBool("database.encrypted") {
+		if mk := viper.GetString("database.masterkey"); mk != "" {
+			log.Printf("MasterKey is present: %s\n", mk)
+			options.EncryptionKey = []byte(mk)
+			return options, nil
+		}
+
+		handleReadMasterKey(&options)
+		return options, nil
+	}
+
+	return options, nil
+}
+
+func handleReadMasterKey(opt *badger.Options) error {
+	mkFilePath := viper.GetString("database.masterkey.fromfilepath")
+
+	var err error
+	var masterkey []byte
+	if mkFilePath != "" {
+		masterkey, err = ReadMasterKeyFromFile(mkFilePath)
+	} else {
+		masterkey, err = utils.ReadInputStringHideInput("MasterKey: ")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	opt.EncryptionKey = masterkey
+
+	return nil
+}
+
+// FileExists checks if a file exists and is not a directory before we
 // try using it to prevent further errors.
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
+func FileExists(filepath string) bool {
+	info, err := os.Stat(filepath)
 	if os.IsNotExist(err) {
 		return false
 	}
