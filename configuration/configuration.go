@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 
+	db "github.com/MattRighetti/passwdvault/database"
+	badger "github.com/dgraph-io/badger/v2"
 	"github.com/spf13/viper"
 )
 
@@ -98,13 +100,75 @@ func ReadMasterKeyFromFile(filepath string) ([]byte, error) {
 		return nil, err
 	}
 
-	mkBytes := make([]byte, DefaultConfig.Database.MasterKey.Length)
+	mkBytes := make([]byte, viper.GetInt("database.masterkey.length"))
 	byteRead, err := file.Read(mkBytes)
 	if err != nil {
 		return nil, err
 	}
 
 	return mkBytes[:byteRead], nil
+}
+
+// DbInit executes a function that initiates and opens BadgerDB
+func DbInit() error {
+	var err error
+	databaseFilePath := path.Join(viper.GetString("database.path"), viper.GetString("database.name"))
+	log.Printf("loading database from %s\n", databaseFilePath)
+	if viper.GetBool("database.encrypted") {
+		log.Println("database is encrypted")
+		mkFilePath := viper.GetString("database.masterkey.fromfilepath")
+
+		var masterKey []byte
+		var masterKeyString string
+
+		if mkFilePath != "" {
+			log.Printf("reading masterkey from %s\n", mkFilePath)
+			masterKey, err = ReadMasterKeyFromFile(mkFilePath)
+		} else {
+			fmt.Print("MasterKey: ")
+			fmt.Scanf("%s", &masterKeyString)
+			log.Printf("read %s|\n", masterKeyString)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		log.Printf("Read MasterKey: %s|\n", masterKey)
+
+		db.DB, err = badger.Open(badger.DefaultOptions(databaseFilePath).WithLogger(nil).WithEncryptionKey(masterKey))
+	} else {
+		log.Println("database unencrypted")
+		db.DB, err = badger.Open(badger.DefaultOptions(databaseFilePath).WithLogger(nil))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CloseDb closes BadgerDB
+func CloseDb() {
+	db.DB.Close()
+}
+
+// InitCriticalData utility function that initiates every critical data needed to the program
+func InitCriticalData() error {
+	if err := CheckInitFile(); err != nil {
+		return err
+	}
+
+	if err := ParseConfigurationFile(); err != nil {
+		return err
+	}
+
+	if err := DbInit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // fileExists checks if a file exists and is not a directory before we

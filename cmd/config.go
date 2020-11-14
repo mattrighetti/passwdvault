@@ -10,15 +10,7 @@ var configCmd = &cobra.Command{
 	Short: "Set and show PasswdVault configuration",
 	Long:  `examples here...`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := configuration.CheckInitFile(); err != nil {
-			return err
-		}
-
-		if err := configuration.ParseConfigurationFile(); err != nil {
-			return err
-		}
-
-		return nil
+		return configuration.InitCriticalData()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Config stuff here

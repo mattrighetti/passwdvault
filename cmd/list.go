@@ -13,15 +13,7 @@ var listCmd = &cobra.Command{
 	Short: "Lists all password identifiers available",
 	Long:  "examples here...",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := configuration.CheckInitFile(); err != nil {
-			return err
-		}
-
-		if err := configuration.ParseConfigurationFile(); err != nil {
-			return err
-		}
-
-		return nil
+		return configuration.InitCriticalData()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		keys, err := db.GetAllKeys()
@@ -32,6 +24,9 @@ var listCmd = &cobra.Command{
 		for _, key := range keys {
 			fmt.Println(string(key))
 		}
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		configuration.CloseDb()
 	},
 }
 
