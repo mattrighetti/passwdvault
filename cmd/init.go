@@ -16,7 +16,17 @@ var (
 	initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initializes configuration files and database",
-		Long:  "examples here...",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			err := configuration.CheckInitFile()
+			if err == nil {
+				var res string
+				fmt.Print("A configuration file already exist, would you like to overwrite it? [y/n]: ")
+				fmt.Scanf("%s", &res)
+				if res != "y" {
+					os.Exit(0)
+				}
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var masterkey []byte
