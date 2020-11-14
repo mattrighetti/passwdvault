@@ -13,8 +13,11 @@ var listCmd = &cobra.Command{
 	Short: "Lists all password identifiers available",
 	Long:  "examples here...",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		err := configuration.CheckInitFile()
-		if err != nil {
+		if err := configuration.CheckInitFile(); err != nil {
+			return err
+		}
+
+		if err := configuration.ParseConfigurationFile(); err != nil {
 			return err
 		}
 

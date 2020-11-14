@@ -13,8 +13,11 @@ var getCmd = &cobra.Command{
 	Short: "Prints the password",
 	Long:  "examples here...",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		err := configuration.CheckInitFile()
-		if err != nil {
+		if err := configuration.CheckInitFile(); err != nil {
+			return err
+		}
+
+		if err := configuration.ParseConfigurationFile(); err != nil {
 			return err
 		}
 
