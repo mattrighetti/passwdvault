@@ -20,8 +20,7 @@ PasswdVault is a flexible, quick and secure tool that lets you save and retrieve
 ```sh
 $ git clone https://github.com/MattRighetti/passwdvault.git
 $ cd passwdvault
-$ go build
-$ ln -s $(pwd)/passwdvault /usr/local/bin/passwdvault
+$ make install
 ```
 
 ## PasswdVault Documentation
