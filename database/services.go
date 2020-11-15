@@ -67,7 +67,7 @@ func Delete(key string) error {
 }
 
 // GetAllKeys returns all the keys stores in the BadgerDB
-func GetAllKeys() ([][]byte, error) {
+func GetAllKeys() [][]byte {
 	txn := DB.NewTransaction(true)
 	defer txn.Discard()
 
@@ -83,5 +83,5 @@ func GetAllKeys() ([][]byte, error) {
 		keys = append(keys, k)
 	}
 
-	return keys, nil
+	return keys
 }

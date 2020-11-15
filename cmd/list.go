@@ -16,10 +16,7 @@ var listCmd = &cobra.Command{
 		return configuration.InitCriticalData()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		keys, err := db.GetAllKeys()
-		if err != nil {
-			fmt.Println("Could not print all keys")
-		}
+		keys := db.GetAllKeys()
 
 		for _, key := range keys {
 			fmt.Println(string(key))
