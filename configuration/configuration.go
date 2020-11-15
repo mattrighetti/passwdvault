@@ -64,10 +64,20 @@ func ParseConfigurationFile() error {
 // CreateConfigurationFile creates a configuration file in $HOME/.passwdvaultconfig.yaml with
 // values specified in user and database
 func CreateConfigurationFile(user *UserConfiguration, database *DatabaseConfiguration) error {
-	viper.AddConfigPath(os.Getenv("HOME"))
 	viper.SetDefault("user", *user)
 	viper.SetDefault("database", *database)
 
+	return SaveConfigurationFile()
+}
+
+// CreateDefaultFile creates a default configuration file in $HOME/.passwdvaultconfig.yaml
+func CreateDefaultFile(completeFilePath string) error {
+	return CreateConfigurationFile(&DefaultConfig.User, &DefaultConfig.Database)
+}
+
+// SaveConfigurationFile saves configuration file
+func SaveConfigurationFile() error {
+	viper.AddConfigPath(os.Getenv("HOME"))
 	completeFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
 	viper.WriteConfigAs(completeFilePath)
 
@@ -76,11 +86,6 @@ func CreateConfigurationFile(user *UserConfiguration, database *DatabaseConfigur
 	}
 
 	return nil
-}
-
-// CreateDefaultFile creates a default configuration file in $HOME/.passwdvaultconfig.yaml
-func CreateDefaultFile(completeFilePath string) error {
-	return CreateConfigurationFile(&DefaultConfig.User, &DefaultConfig.Database)
 }
 
 // ReadMasterKeyFromFile reads masterkey value from file
@@ -143,11 +148,8 @@ func CloseDb() {
 
 // InitCriticalData utility function that initiates every critical data needed to the program
 func InitCriticalData() error {
-	if exists := utils.FileExists(ConfigFilePath); exists != true {
-		return fmt.Errorf("configuration file is not present")
-	}
-
-	if err := ParseConfigurationFile(); err != nil {
+	err := CheckForConfigFileAndParse()
+	if err != nil {
 		return err
 	}
 
@@ -157,6 +159,19 @@ func InitCriticalData() error {
 	}
 
 	if err := DbInit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CheckForConfigFileAndParse utility function that checks if config file exists and parse it
+func CheckForConfigFileAndParse() error {
+	if exists := utils.FileExists(ConfigFilePath); exists != true {
+		return fmt.Errorf("configuration file is not present")
+	}
+
+	if err := ParseConfigurationFile(); err != nil {
 		return err
 	}
 
