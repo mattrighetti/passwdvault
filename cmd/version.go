@@ -1,13 +1,16 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Shows passwdvault version",
-	Long:  "passwdvault version",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Do stuff here...
+		fmt.Printf("passwdvault version %s\n", "0.1.0")
 	},
 }
 
