@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/MattRighetti/passwdvault/configuration"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,7 +14,6 @@ var configCmd = &cobra.Command{
 		return configuration.CheckForConfigFileAndParse()
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Printf("Adding %s.%s to config file", args[0], args[1])
 		return addConfigToConfigFile(args[0], args[1])
 	},
 }
