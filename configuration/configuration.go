@@ -2,9 +2,13 @@ package configuration
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 
+	db "github.com/MattRighetti/passwdvault/database"
+	"github.com/MattRighetti/passwdvault/utils"
+	badger "github.com/dgraph-io/badger/v2"
 	"github.com/spf13/viper"
 )
 
@@ -24,31 +28,52 @@ const (
 )
 
 // DefaultConfig default configuration
-var DefaultConfig = Configuration{
-	User: UserConfiguration{
-		Name:  "someuser",
-		Email: "someuser@email.com",
-	},
-	Database: DatabaseConfiguration{
-		Name:      "badger",
-		Path:      "/tmp/",
-		Encrypted: true,
-		MasterKey: MasterKey{
-			FromFilePath: "/etc/passwdvault/mk",
-			Length:       32,
+var (
+	configuraton   *Configuration
+	ConfigFilePath = path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
+
+	DefaultConfig = Configuration{
+		User: UserConfiguration{
+			Name:  "someuser",
+			Email: "someuser@email.com",
 		},
-	},
+		Database: DatabaseConfiguration{
+			Name:      "badger",
+			Path:      "/tmp/",
+			Encrypted: true,
+			MasterKey: MasterKey{
+				FromFilePath: "/etc/passwdvault/mk",
+				Length:       32,
+			},
+		},
+	}
+)
+
+// ParseConfigurationFile parses the configuration file
+func ParseConfigurationFile() error {
+	viper.SetConfigType(ConfigFileType)
+	viper.SetConfigName(ConfigFileName)
+	viper.AddConfigPath(os.Getenv("HOME"))
+	err := viper.ReadInConfig()
+	if err != nil {
+		return fmt.Errorf("fatal error config file: %s", err)
+	}
+
+	return nil
 }
 
-// CheckInitFile checks wether the default configuration file is present or not
-// if not it creates it
-func CheckInitFile() error {
-	configFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
-	if !fileExists(configFilePath) {
-		err := CreateDefaultFile(configFilePath)
-		if err != nil {
-			return err
-		}
+// CreateConfigurationFile creates a configuration file in $HOME/.passwdvaultconfig.yaml with
+// values specified in user and database
+func CreateConfigurationFile(user *UserConfiguration, database *DatabaseConfiguration) error {
+	viper.AddConfigPath(os.Getenv("HOME"))
+	viper.SetDefault("user", *user)
+	viper.SetDefault("database", *database)
+
+	completeFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
+	viper.WriteConfigAs(completeFilePath)
+
+	if !utils.FileExists(completeFilePath) {
+		return fmt.Errorf("configuration file could not have been created")
 	}
 
 	return nil
@@ -56,27 +81,7 @@ func CheckInitFile() error {
 
 // CreateDefaultFile creates a default configuration file in $HOME/.passwdvaultconfig.yaml
 func CreateDefaultFile(completeFilePath string) error {
-	viper.AddConfigPath(os.Getenv("HOME"))
-	viper.SetDefault("user", DefaultConfig.User)
-	viper.SetDefault("database", DefaultConfig.Database)
-	viper.WriteConfigAs(completeFilePath)
-
-	if !fileExists(completeFilePath) {
-		return fmt.Errorf("configuration file could not have been created")
-	}
-
-	return nil
-}
-
-// fileExists checks if a file exists and is not a directory before we
-// try using it to prevent further errors.
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return !info.IsDir()
+	return CreateConfigurationFile(&DefaultConfig.User, &DefaultConfig.Database)
 }
 
 // ReadMasterKeyFromFile reads masterkey value from file
@@ -85,12 +90,105 @@ func ReadMasterKeyFromFile(filepath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
-	mkBytes := make([]byte, DefaultConfig.Database.MasterKey.Length)
+	mkBytes := make([]byte, viper.GetInt("database.masterkey.length"))
 	byteRead, err := file.Read(mkBytes)
 	if err != nil {
 		return nil, err
 	}
 
 	return mkBytes[:byteRead], nil
+}
+
+// DbInit executes a function that initiates and opens BadgerDB
+func DbInit() error {
+	options, err := initOptions()
+	if err != nil {
+		return err
+	}
+
+	db.DB, err = badger.Open(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CreateDb creates a database for the first time
+func CreateDb(databasePath string, masterkey []byte) error {
+	options := badger.DefaultOptions(databasePath).WithLogger(nil)
+
+	if masterkey != nil {
+		log.Printf("masterkey not nil: %s\n", string(masterkey))
+		options = options.WithEncryptionKey(masterkey)
+	}
+
+	var err error
+	db.DB, err = badger.Open(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CloseDb closes BadgerDB
+func CloseDb() {
+	db.DB.Close()
+}
+
+// InitCriticalData utility function that initiates every critical data needed to the program
+func InitCriticalData() error {
+	if exists := utils.FileExists(ConfigFilePath); exists != true {
+		return fmt.Errorf("configuration file is not present")
+	}
+
+	if err := ParseConfigurationFile(); err != nil {
+		return err
+	}
+
+	databaseFilePath := path.Join(viper.GetString("database.path"), viper.GetString("database.name"))
+	if exists := utils.FolderExists(databaseFilePath); exists != true {
+		return fmt.Errorf("database file is not present")
+	}
+
+	if err := DbInit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initOptions() (badger.Options, error) {
+	databaseFilePath := path.Join(viper.GetString("database.path"), viper.GetString("database.name"))
+	options := badger.DefaultOptions(databaseFilePath).WithLogger(nil)
+
+	if viper.GetBool("database.encrypted") {
+		handleReadMasterKey(&options)
+		return options, nil
+	}
+
+	return options, nil
+}
+
+func handleReadMasterKey(opt *badger.Options) error {
+	mkFilePath := viper.GetString("database.masterkey.fromfilepath")
+
+	var err error
+	var masterkey []byte
+	if mkFilePath != "" {
+		masterkey, err = ReadMasterKeyFromFile(mkFilePath)
+	} else {
+		masterkey, err = utils.ReadInputStringHideInput("MasterKey: ")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	opt.EncryptionKey = masterkey
+
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/MattRighetti/passwdvault/configuration"
 	db "github.com/MattRighetti/passwdvault/database"
 	"github.com/spf13/cobra"
 )
@@ -25,6 +26,9 @@ var (
 		Use:   "create [PASSWORD_ID] [PASSWORD]",
 		Short: "Creates password with identifier",
 		Long:  "examples here...",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return configuration.InitCriticalData()
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("Writing (%s, %s) to BadgerDB\n", identifier, passwd)
 			reader := bufio.NewReader(os.Stdin)
