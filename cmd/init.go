@@ -70,8 +70,10 @@ var (
 				config.Database.Encrypted = false
 			}
 
+			dbPath := path.Join(config.Database.Path, config.Database.Name)
+			log.Printf("Using masterkey: %v\n", masterkey)
+			configuration.CreateDb(dbPath, masterkey)
 			configuration.CreateConfigurationFile(&config.User, &config.Database)
-			configuration.DbInit()
 		},
 	}
 )

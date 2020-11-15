@@ -116,6 +116,24 @@ func DbInit() error {
 	return nil
 }
 
+// CreateDb creates a database for the first time
+func CreateDb(databasePath string, masterkey []byte) error {
+	options := badger.DefaultOptions(databasePath).WithLogger(nil)
+
+	if masterkey != nil {
+		log.Printf("masterkey not nil: %s\n", string(masterkey))
+		options = options.WithEncryptionKey(masterkey)
+	}
+
+	var err error
+	db.DB, err = badger.Open(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CloseDb closes BadgerDB
 func CloseDb() {
 	db.DB.Close()
@@ -148,12 +166,6 @@ func initOptions() (badger.Options, error) {
 	options := badger.DefaultOptions(databaseFilePath).WithLogger(nil)
 
 	if viper.GetBool("database.encrypted") {
-		if mk := viper.GetString("database.masterkey"); mk != "" {
-			log.Printf("MasterKey is present: %s\n", mk)
-			options.EncryptionKey = []byte(mk)
-			return options, nil
-		}
-
 		handleReadMasterKey(&options)
 		return options, nil
 	}
