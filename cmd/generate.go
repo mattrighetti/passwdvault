@@ -13,7 +13,7 @@ var (
 	generateCmd = &cobra.Command{
 		Use:   "generate",
 		Short: "Generates password",
-		Long:  "examples here...",
+		Long:  "Generate is an utility tool that will generate strong passwords of specified length",
 		Run: func(cmd *cobra.Command, args []string) {
 			pass, err := generator.Generate(uint8(length))
 			if err != nil {

@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/MattRighetti/passwdvault/configuration"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -8,13 +11,21 @@ import (
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Set and show PasswdVault configuration",
-	Long:  `examples here...`,
+	Short: "Sets PasswdVault configuration values",
+	Long:  "Set will add the passed configuration values to the .passwdvaultconfig file",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		return configuration.CheckForConfigFileAndParse()
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return addConfigToConfigFile(args[0], args[1])
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) < 2 {
+			cmd.Help()
+			os.Exit(0)
+		}
+
+		err := addConfigToConfigFile(args[0], args[1])
+		if err != nil {
+			fmt.Println(err)
+		}
 	},
 }
 

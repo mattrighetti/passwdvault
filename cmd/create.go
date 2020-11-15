@@ -25,7 +25,7 @@ var (
 	createCmd = &cobra.Command{
 		Use:   "create [PASSWORD_ID] [PASSWORD]",
 		Short: "Creates password with identifier",
-		Long:  "examples here...",
+		Long:  "Create will create the given password with the passed pasword identifier",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return configuration.InitCriticalData()
 		},

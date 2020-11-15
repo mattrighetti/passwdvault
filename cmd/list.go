@@ -11,7 +11,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Lists all password identifiers available",
-	Long:  "examples here...",
+	Long:  "List is an utility tool that will list all the stored password identifiers stored",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		return configuration.InitCriticalData()
 	},
