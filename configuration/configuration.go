@@ -86,6 +86,10 @@ func CreateDefaultFile(completeFilePath string) error {
 
 // ReadMasterKeyFromFile reads masterkey value from file
 func ReadMasterKeyFromFile(filepath string) ([]byte, error) {
+	if !utils.FileExists(filepath) {
+		return nil, fmt.Errorf("file doesn't exist")
+	}
+
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
@@ -175,17 +179,11 @@ func initOptions() (badger.Options, error) {
 
 func handleReadMasterKey(opt *badger.Options) error {
 	mkFilePath := viper.GetString("database.masterkey.fromfilepath")
+	log.Printf("Reading from %s\n", mkFilePath)
 
-	var err error
-	var masterkey []byte
-	if mkFilePath != "" {
-		masterkey, err = ReadMasterKeyFromFile(mkFilePath)
-	} else {
-		masterkey, err = utils.ReadInputStringHideInput("MasterKey: ")
-	}
-
+	masterkey, err := ReadMasterKeyFromFile(mkFilePath)
 	if err != nil {
-		return err
+		masterkey, err = utils.ReadInputStringHideInput("MasterKey: ")
 	}
 
 	opt.EncryptionKey = masterkey
