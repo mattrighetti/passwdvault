@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/MattRighetti/passwdvault/configuration"
 	"github.com/MattRighetti/passwdvault/utils"
@@ -19,7 +20,7 @@ var (
 		Use:   "init",
 		Short: "Initializes configuration files and database",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			exists := configuration.FileExists(configuration.ConfigFilePath)
+			exists := utils.FileExists(configuration.ConfigFilePath)
 			if exists {
 				var res string
 				fmt.Print("A configuration file already exist, would you like to overwrite it? [y/n]: ")
@@ -31,6 +32,7 @@ var (
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var config configuration.Configuration
+			var masterkey []byte = nil
 
 			utils.ReadInputString("Your name: ", &config.User.Name)
 			utils.ReadInputString("Your email: ", &config.User.Email)
@@ -48,11 +50,10 @@ var (
 			if confirm {
 				config.Database.Encrypted = true
 
-				var masterkey []byte
 				for {
-					masterkey, _ := utils.ReadInputStringHideInput("MasterKey (must be either 8 or 16 or 32 or 64 chars): ")
+					masterkey, _ = utils.ReadInputStringHideInput("MasterKey (must be either 16 or 24 or 64 chars): ")
 					log.Printf("Read %d bytes\n", len(masterkey))
-					if len(masterkey) == 8 || len(masterkey) == 16 || len(masterkey) == 32 || len(masterkey) == 64 {
+					if len(masterkey) == 16 || len(masterkey) == 24 || len(masterkey) == 64 {
 						break
 					}
 				}

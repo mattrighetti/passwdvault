@@ -72,7 +72,7 @@ func CreateConfigurationFile(user *UserConfiguration, database *DatabaseConfigur
 	completeFilePath := path.Join(os.Getenv("HOME"), ConfigFileName+"."+ConfigFileType)
 	viper.WriteConfigAs(completeFilePath)
 
-	if !FileExists(completeFilePath) {
+	if !utils.FileExists(completeFilePath) {
 		return fmt.Errorf("configuration file could not have been created")
 	}
 
@@ -123,7 +123,7 @@ func CloseDb() {
 
 // InitCriticalData utility function that initiates every critical data needed to the program
 func InitCriticalData() error {
-	if exists := FileExists(ConfigFilePath); exists != true {
+	if exists := utils.FileExists(ConfigFilePath); exists != true {
 		return fmt.Errorf("configuration file is not present")
 	}
 
@@ -131,8 +131,8 @@ func InitCriticalData() error {
 		return err
 	}
 
-	databaseFilePath := path.Join(os.Getenv("HOME"), viper.GetString("database.path"), viper.GetString("database.name"))
-	if exists := FileExists(databaseFilePath); exists != true {
+	databaseFilePath := path.Join(viper.GetString("database.path"), viper.GetString("database.name"))
+	if exists := utils.FolderExists(databaseFilePath); exists != true {
 		return fmt.Errorf("database file is not present")
 	}
 
@@ -179,15 +179,4 @@ func handleReadMasterKey(opt *badger.Options) error {
 	opt.EncryptionKey = masterkey
 
 	return nil
-}
-
-// FileExists checks if a file exists and is not a directory before we
-// try using it to prevent further errors.
-func FileExists(filepath string) bool {
-	info, err := os.Stat(filepath)
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return !info.IsDir()
 }
