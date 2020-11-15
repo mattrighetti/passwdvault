@@ -4,7 +4,7 @@
     <img src="https://www.flaticon.com/svg/static/icons/svg/3039/3039427.svg" height="300px">
 </p>
 
-PasswdVault is a flexible, quick and secure tool that lets you save and retrieve your passwords locally
+PasswdVault is a flexible, quick and secure CLI password manager that lets you save and retrieve your passwords locally
 
 ## Table of Contents
   * [Getting Started](#getting-started)
