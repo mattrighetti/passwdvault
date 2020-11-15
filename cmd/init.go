@@ -41,7 +41,6 @@ var (
 			if err != nil {
 				log.Fatal(err)
 			}
-			log.Printf("saving folder in %s\n", dir)
 
 			config.Database.Path = dir
 			config.Database.Name = ".passwddatabase"
@@ -52,7 +51,6 @@ var (
 
 				for {
 					masterkey, _ = utils.ReadInputStringHideInput("MasterKey (must be either 16 or 24 or 64 chars): ")
-					log.Printf("Read %d bytes\n", len(masterkey))
 					if len(masterkey) == 16 || len(masterkey) == 24 || len(masterkey) == 64 {
 						break
 					}
@@ -71,7 +69,6 @@ var (
 			}
 
 			dbPath := path.Join(config.Database.Path, config.Database.Name)
-			log.Printf("Using masterkey: %v\n", masterkey)
 			configuration.CreateDb(dbPath, masterkey)
 			configuration.CreateConfigurationFile(&config.User, &config.Database)
 		},

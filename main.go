@@ -5,6 +5,5 @@ import (
 )
 
 func main() {
-	// log.SetOutput(ioutil.Discard)
 	cmd.Execute()
 }

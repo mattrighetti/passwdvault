@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 
@@ -125,7 +124,6 @@ func CreateDb(databasePath string, masterkey []byte) error {
 	options := badger.DefaultOptions(databasePath).WithLogger(nil)
 
 	if masterkey != nil {
-		log.Printf("masterkey not nil: %s\n", string(masterkey))
 		options = options.WithEncryptionKey(masterkey)
 	}
 
@@ -179,7 +177,6 @@ func initOptions() (badger.Options, error) {
 
 func handleReadMasterKey(opt *badger.Options) error {
 	mkFilePath := viper.GetString("database.masterkey.fromfilepath")
-	log.Printf("Reading from %s\n", mkFilePath)
 
 	masterkey, err := ReadMasterKeyFromFile(mkFilePath)
 	if err != nil {
