@@ -9,14 +9,17 @@ PasswdVault is a flexible, quick and secure tool that lets you save and retrieve
 ## Table of Contents
   * [Getting Started](#getting-started)
     + [Installing](#installing)
-      - [Installing PasswdVault Command Line Tool Manually](#installing-badger-command-line-tool-manually)
+      - [Installing PasswdVault Command Line Tool Manually](#installing-passwdvault-command-line-tool-manually)
   * [PasswdVault Documentation](#passwd-documentation)
   * [Projects Using Badger](#projects-using-passwdvault)
   * [Contact](#contact)
 
 ## Getting started
 ### Installing
-#### Installing Badger Command Line Tool Manually
+First of all you'll need to install Go
+https://golang.org
+
+#### Installing PasswdVault Command Line Tool Manually
 ```sh
 $ git clone https://github.com/MattRighetti/passwdvault.git
 $ cd passwdvault
