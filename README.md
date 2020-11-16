@@ -86,6 +86,14 @@ $ passwdvault generate
 ```
 to get a strong password back
 
+### Change configuration file data
+Let's say that I moved my database from `$HOME` to `$HOME/matt` folder, if you run any command without changing the _.passwdvaultconfig_ file you will get an error that tell you that the database cannot be found. If you want to specify the new path to the database you'll need to edit the `database.path` attribute in the _.passwdvaultconfig_ file.
+The `config` command has been created to ease that process, run
+```sh
+$ passwdvault config database.path $HOME/matt
+```
+and the tool will automatically update that value for you and the tool should be working again.
+
 ## PasswdVault Documentation
 ### Commands
 - `init`
@@ -102,7 +110,7 @@ to get a strong password back
 PasswdVault is powered by
 - [cobra](https://github.com/spf13/cobra)
 - [viper](https://github.com/spf13/viper)
-- [BadgerDB](https://github.com/dgraph-io/badger)
+- [badger](https://github.com/dgraph-io/badger)
 - [passwdgen](https://github.com/MattRighetti/passwdgen)
 
 ## Contact
