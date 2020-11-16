@@ -66,7 +66,14 @@ $ passwdvault list
 ### Search for a password identifier
 There may be some cases where you have a ton of passwords and you don't want to list all the password identifiers, but you just want to search for some that has a certain sub-string in it.
 
-`search` is meant just for that, let's say that I have these passwords stored: **githubpass**, **server1pass**, **awspass**, **vs-code-accountpass**, **some-random-pass**, if I run
+`search` is meant just for that, let's say that I have these passwords stored: 
+- **githubpass**
+- **server1pass**
+- **awspass**
+- **vs-code-accountpass**
+- **some-random-pass** 
+
+if I run
 ```sh
 $ passwdvault search aws
 ```
