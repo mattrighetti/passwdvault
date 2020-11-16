@@ -11,6 +11,14 @@ PasswdVault is a flexible, quick and secure CLI password manager that lets you s
     + [Installing](#installing)
       - [Installing PasswdVault Command Line Tool Manually](#installing-passwdvault-command-line-tool-manually)
     + [How to Use](#how-to-use)
+      - [Initialize Tool](#initialize-tool)
+      - [Save a Password](#save-a-password)
+      - [Retrieve a Passwords](#retrieve-a-password)
+      - [Delete a password](#delete-a-password)
+      - [List all your password identifiers](#list-all-your-pasword-identifiers)
+      - [Search for a password identifier](#search-for-a-password-identifier)
+      - [Generate a password](#generate-a-password)
+      - [Change configuration file data](-change-configuration-file-data)
   * [PasswdVault Documentation](#passwd-documentation)
     + [Commands](#commands)
   * [How To Use](#how-to-use)
@@ -87,12 +95,12 @@ $ passwdvault generate
 to get a strong password back
 
 ### Change configuration file data
-Let's say that I moved my database from `$HOME` to `$HOME/matt` folder, if you run any command without changing the _.passwdvaultconfig_ file you will get an error that tell you that the database cannot be found. If you want to specify the new path to the database you'll need to edit the `database.path` attribute in the _.passwdvaultconfig_ file.
+Let's say that I moved my database folder from `$HOME` to `$HOME/matt`, if you run any command without changing the _.passwdvaultconfig_ file you will get an error that tells you that the database cannot be found. If you want to specify the new path to the database you'll need to edit the `database.path` attribute in the _.passwdvaultconfig_ file.
 The `config` command has been created to ease that process, run
 ```sh
 $ passwdvault config database.path $HOME/matt
 ```
-and the tool will automatically update that value for you and the tool should be working again.
+and the tool will automatically update that value for you.
 
 ## PasswdVault Documentation
 ### Commands
