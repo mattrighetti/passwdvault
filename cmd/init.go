@@ -40,7 +40,7 @@ var (
 			unamePattern := `^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$`
 			emailPattern := "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
-			utils.ReadValidatedInputString("Your name: ", &config.User.Name, unamePattern, 8, 20)
+			utils.ReadValidatedInputString("Your username: ", &config.User.Name, unamePattern, 8, 20)
 			utils.ReadValidatedInputString("Your email: ", &config.User.Email, emailPattern, 3, 254)
 
 			dir, err := os.Getwd()
